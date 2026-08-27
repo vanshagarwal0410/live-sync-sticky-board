@@ -1,0 +1,13 @@
+{
+  "name": "live-sync-sticky-board-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for the Live-Sync Sticky Board — handles real-time note sync and JSON file persistence.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ws": "^8.18.0"
+  }
+}

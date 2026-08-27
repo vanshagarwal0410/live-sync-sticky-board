@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment files (contain deployment-specific config — see .env.example)
+.env
+.env.local
+.env.development
+.env.production
+
+# Build output
+dist/
+build/
+
+# Runtime data (server writes this at runtime — not source code)
+server/data/board.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

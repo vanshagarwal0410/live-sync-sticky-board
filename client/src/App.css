@@ -1,0 +1,378 @@
+/**
+ * App.css — Core styles for Live-Sync Sticky Board.
+ *
+ * Uses CSS custom properties for the "Candy Board" palette: pastel-to-vivid
+ * note colors over a warm dotted-grid canvas. Design direction comes from
+ * two reference images — a colorful ideation-board mockup and a compact
+ * "sticky notes" app — combined into one deliberate design system.
+ *
+ * Typography:
+ *  - Display: Fredoka (rounded, friendly) — app title only
+ *  - Body:    Inter (clean sans-serif)   — everything else
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Candy Board palette ─────────────────────────── */
+  --tangerine: #FFB347;
+  --rose: #FF6B8A;
+  --lavender: #B48BFF;
+  --mint: #6BCB77;
+  --sky: #61C0FF;
+  --lemon: #FFE066;
+
+  /* ── Canvas & UI chrome ──────────────────────────── */
+  --canvas: #F5F0E8;
+  --dot: #D5CFC5;
+  --charcoal: #2D2D2D;
+  --text: #1A1A1A;
+  --text-light: #666;
+
+  /* ── Note sizing ─────────────────────────────────── */
+  --note-width: 220px;
+  --note-min-height: 160px;
+  --note-radius: 14px;
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--canvas);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── App Layout ────────────────────────────────────────── */
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  pointer-events: none; /* let clicks through to the board behind */
+}
+
+.app-header > * {
+  pointer-events: auto; /* but make header children clickable */
+}
+
+.app-title {
+  font-family: 'Fredoka', cursive;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  letter-spacing: -0.02em;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: 999px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Board (dotted-grid canvas) ────────────────────────── */
+
+.board {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--canvas);
+  background-image: radial-gradient(circle, var(--dot) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+  overflow: hidden;
+}
+
+.board-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--text-light);
+  font-size: 1rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.board-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+/* ── Sticky Note ───────────────────────────────────────── */
+
+.sticky-note {
+  position: absolute;
+  width: var(--note-width);
+  min-height: var(--note-min-height);
+  border-radius: var(--note-radius);
+  padding: 10px 14px 14px;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.07),
+    0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
+}
+
+.sticky-note:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.sticky-note.dragging {
+  cursor: grabbing;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.14),
+    0 16px 48px rgba(0, 0, 0, 0.07);
+  z-index: 999 !important;
+  opacity: 0.92;
+}
+
+/* Keyboard focus ring */
+.sticky-note:focus-within {
+  outline: 2.5px solid var(--charcoal);
+  outline-offset: 3px;
+}
+
+/* ── Note header (delete button) ───────────────────────── */
+
+.note-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+  min-height: 22px;
+}
+
+.note-delete {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.sticky-note:hover .note-delete,
+.note-delete:focus-visible {
+  opacity: 1;
+}
+
+.note-delete:hover {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.note-delete:focus-visible {
+  outline: 2px solid var(--charcoal);
+  outline-offset: 1px;
+}
+
+/* ── Note text area ────────────────────────────────────── */
+
+.note-text {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text);
+  cursor: text;
+  outline: none;
+  min-height: 100px;
+}
+
+.note-text::placeholder {
+  color: rgba(0, 0, 0, 0.28);
+  font-style: italic;
+}
+
+/* ── Remote-update pulse animation ─────────────────────── */
+/* Only plays when the user hasn't opted into reduced motion */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes remote-pulse {
+    0% {
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.07),
+        0 0 0 0px rgba(45, 45, 45, 0.25);
+    }
+    50% {
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.07),
+        0 0 0 7px rgba(45, 45, 45, 0.06);
+      transform: scale(1.018);
+    }
+    100% {
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.07),
+        0 0 0 0px rgba(45, 45, 45, 0);
+      transform: scale(1);
+    }
+  }
+
+  .sticky-note.remote-pulse {
+    animation: remote-pulse 0.5s ease-out;
+  }
+}
+
+/* ── Floating toolbar ──────────────────────────────────── */
+
+.toolbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--charcoal);
+  border-radius: 999px;
+  padding: 6px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 1000;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.22),
+    0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.toolbar-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar-btn:active {
+  transform: scale(0.93);
+}
+
+.toolbar-btn:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 2px;
+}
+
+/* ── Connection Status badge ───────────────────────────── */
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  white-space: nowrap;
+}
+
+.connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connection-dot.connected {
+  background: #22c55e;
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
+}
+
+.connection-dot.disconnected {
+  background: #ef4444;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+}
+
+.connection-count {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+
+/* ── Export button ─────────────────────────────────────── */
+
+.export-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.export-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.export-btn:focus-visible {
+  outline: 2.5px solid var(--charcoal);
+  outline-offset: 2px;
+}

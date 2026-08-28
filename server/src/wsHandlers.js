@@ -7,6 +7,10 @@
  * a change came from themselves or from someone else (used on the client
  * to trigger the "remote update" pulse animation).
  *
+ * Every handler returns early when the store rejects a message, so a
+ * malformed or hostile payload is dropped rather than broadcast — a broadcast
+ * the clients can't parse is worse than no broadcast at all.
+ *
  * Conflict model: last-write-wins. Whichever update the server processes
  * last for a given note is what gets stored and broadcast. This is
  * deliberate for a first-year submission — see README for the rationale.
@@ -23,21 +27,25 @@ function handleMessage(message, wss) {
 
   switch (type) {
     case 'ADD_NOTE': {
-      store.addNote(payload);
-      broadcast(wss, {
-        type: 'NOTE_ADDED',
-        payload,
-        sourceClientId,
-      });
+      // Broadcast what the store actually kept, not the raw client payload
+      const note = store.addNote(payload);
+      if (note) {
+        broadcast(wss, {
+          type: 'NOTE_ADDED',
+          payload: note,
+          sourceClientId,
+        });
+      }
       break;
     }
 
     case 'EDIT_NOTE': {
+      if (!payload) break;
       const note = store.editNote(payload.id, payload.text);
       if (note) {
         broadcast(wss, {
           type: 'NOTE_EDITED',
-          payload: { id: payload.id, text: payload.text },
+          payload: { id: note.id, text: note.text },
           sourceClientId,
         });
       }
@@ -45,6 +53,7 @@ function handleMessage(message, wss) {
     }
 
     case 'DELETE_NOTE': {
+      if (!payload || typeof payload.id !== 'string') break;
       store.deleteNote(payload.id);
       broadcast(wss, {
         type: 'NOTE_DELETED',
@@ -55,11 +64,12 @@ function handleMessage(message, wss) {
     }
 
     case 'MOVE_NOTE': {
+      if (!payload) break;
       const note = store.moveNote(payload.id, payload.x, payload.y);
       if (note) {
         broadcast(wss, {
           type: 'NOTE_MOVED',
-          payload: { id: payload.id, x: payload.x, y: payload.y },
+          payload: { id: note.id, x: note.x, y: note.y },
           sourceClientId,
         });
       }

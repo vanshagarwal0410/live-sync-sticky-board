@@ -9,13 +9,14 @@
  * connection state easy to reason about and explain on camera: one TCP
  * upgrade, one persistent connection, plain JSON in both directions.
  *
- * Each client generates a unique clientId (via crypto.randomUUID()) so
+ * Each client generates a unique clientId (see uid.js) so
  * the server can echo it back in broadcasts. The client uses this to
  * distinguish "my own action echoed back" from "someone else's action"
  * — the latter triggers the pulse animation on the affected note.
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { uid } from '../uid';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
 const RECONNECT_BASE_MS = 1000;
@@ -29,7 +30,7 @@ export function useBoardSocket() {
   const [remoteUpdatedIds, setRemoteUpdatedIds] = useState(new Set());
 
   const wsRef = useRef(null);
-  const clientIdRef = useRef(crypto.randomUUID());
+  const clientIdRef = useRef(uid());
   const reconnectDelayRef = useRef(RECONNECT_BASE_MS);
   const reconnectTimerRef = useRef(null);
   const isMountedRef = useRef(true);
@@ -60,19 +61,28 @@ export function useBoardSocket() {
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
+    // Every handler bails if this socket is no longer the one we own.
+    // React 18 StrictMode mounts, unmounts, and remounts in dev: the first
+    // socket's close event used to fire after the remount had set
+    // isMountedRef back to true, flipping the badge to "Disconnected" and
+    // opening a second, duplicate connection.
+    const isCurrent = () => isMountedRef.current && wsRef.current === ws;
+
     ws.onopen = () => {
-      if (!isMountedRef.current) return;
+      if (!isCurrent()) return;
       setIsConnected(true);
       reconnectDelayRef.current = RECONNECT_BASE_MS; // reset backoff on success
       console.log('[ws] Connected to', WS_URL);
     };
 
     ws.onclose = () => {
-      if (!isMountedRef.current) return;
+      if (!isCurrent()) return;
       setIsConnected(false);
       setConnectedCount(0);
 
       // Auto-reconnect with exponential backoff, capped at 30s
+      wsRef.current = null; // release the dead socket so connect() can retry
+
       const delay = reconnectDelayRef.current;
       console.log(`[ws] Disconnected. Reconnecting in ${delay}ms…`);
       reconnectTimerRef.current = setTimeout(() => {
@@ -87,7 +97,7 @@ export function useBoardSocket() {
     };
 
     ws.onmessage = (event) => {
-      if (!isMountedRef.current) return;
+      if (!isCurrent()) return;
       try {
         const msg = JSON.parse(event.data);
         const isRemote =
@@ -95,8 +105,11 @@ export function useBoardSocket() {
 
         switch (msg.type) {
           case 'SYNC_STATE':
-            // Full board state — replaces everything (used on connect/reconnect)
-            setNotes(msg.payload.notes);
+            // Full board state — replaces everything (used on connect/reconnect).
+            // Filtered because one bad record used to crash the whole board.
+            setNotes(
+              (msg.payload?.notes || []).filter((n) => n && typeof n.id === 'string')
+            );
             break;
 
           case 'NOTE_ADDED':

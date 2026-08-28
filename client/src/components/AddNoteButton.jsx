@@ -8,6 +8,7 @@
 
 import { useCallback } from 'react';
 import { COLOR_NAMES } from '../constants';
+import { uid } from '../uid';
 
 export default function AddNoteButton({ onAdd }) {
   const handleAdd = useCallback(() => {
@@ -25,7 +26,7 @@ export default function AddNoteButton({ onAdd }) {
     );
 
     onAdd({
-      id: crypto.randomUUID(),
+      id: uid(),
       text: '',
       color,
       x,

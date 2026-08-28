@@ -72,6 +72,15 @@ function broadcastCount() {
   });
 }
 
+// Flush any pending debounced write before the process dies, otherwise
+// the last 300ms of edits never reach board.json.
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => {
+    store.flush();
+    process.exit(0);
+  });
+}
+
 server.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
   console.log(`WebSocket available at ws://localhost:${PORT}`);

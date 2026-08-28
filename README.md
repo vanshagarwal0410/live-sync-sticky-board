@@ -153,18 +153,6 @@ live-sync-sticky-board/
 - Board state is persisted to a JSON file so it survives server restarts
 - The client auto-reconnects with exponential backoff
 
-### What this project is NOT (second-year extension)
-
-The second-year ask is specifically about resolving **simultaneous edits to the same note** — optimistic UI, conflict detection, and reconciliation/rollback. That was deliberately left out because this is a first-year submission.
-
-The conflict model here is intentionally simple: **last-write-wins**. Whichever update the server processes last for a given note is what gets stored and broadcast. This is stated plainly because the task guide says it's looking for evidence that the scope was understood and a deliberate call was made — not a gap.
-
-### Out of scope
-
-- ❌ Conflict resolution beyond last-write-wins
-- ❌ Optimistic-UI reconciliation or rollback logic
-- ❌ Accounts, auth, or permissions (no login for this task)
-
 ## Tech Stack
 
 | Layer | Tech | Why |

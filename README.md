@@ -4,6 +4,8 @@ A real-time collaborative sticky-note board where every open browser tab sees ev
 
 Built as a first-year technical-recruitment submission.
 
+Deployed it using AWS with integration of Vercel - https://client-nu-ashen-25.vercel.app
+
 ![Tech Stack](https://img.shields.io/badge/React-Vite-blue) ![WebSocket](https://img.shields.io/badge/WebSocket-ws-green) ![Node.js](https://img.shields.io/badge/Node.js-Express-orange)
 
 ## What It Does
